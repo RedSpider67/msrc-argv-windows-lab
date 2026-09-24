@@ -1,0 +1,12 @@
+name: ceiling4
+on:
+  workflow_dispatch:
+  push: { paths: ['harness/ceiling4.ps1', '.github/workflows/ceiling4.yml'] }
+jobs:
+  winps51:
+    name: Windows PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: powershell
+        run: .\harness\ceiling4.ps1
