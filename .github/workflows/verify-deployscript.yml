@@ -1,0 +1,12 @@
+name: verify-deployscript
+on:
+  workflow_dispatch:
+  push: { paths: ['pocverify/deployscript/**', '.github/workflows/verify-deployscript.yml'] }
+jobs:
+  winps51:
+    name: Windows PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: powershell
+        run: .\pocverify\deployscript\deployscript.ps1
