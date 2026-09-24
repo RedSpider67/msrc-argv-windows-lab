@@ -11,6 +11,14 @@ jobs:
         shell: powershell
         continue-on-error: true
         run: cd pocverify\sqldacpac; .\run.ps1
+      - name: sqldacpac rce.ps1
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\sqldacpac; .\rce.ps1
+      - name: sqldacpac deployscript.ps1
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\sqldacpac; .\deployscript.ps1
       - name: sqldacpac argv.ps1
         shell: powershell
         continue-on-error: true
