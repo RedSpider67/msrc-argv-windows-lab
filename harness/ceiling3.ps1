@@ -82,7 +82,10 @@ Write-Output ("  ORIGINAL LINE STILL PRESENT    : " + ((Get-Content $bat -Raw) -
 (Select-String -Path $bat -Pattern 'BATCH_MARKER' | Select-Object -First 2) | ForEach-Object { Write-Output ("    hit> " + $_.Line.Trim()) }
 Write-Output ""
 Write-Output ("  running the replaced batch file, as the machine would:")
-& cmd.exe /c "`"$bat`"" 2>&1 | Select-Object -First 8 | ForEach-Object { Write-Output ("    after> " + $_) }
+$log = Join-Path $work 'batout.txt'
+cmd.exe /c "`"$bat`" > `"$log`" 2>&1"
+Write-Output ("  batch produced " + (Get-Content $log -ErrorAction SilentlyContinue).Count + " output lines, full capture, no pipeline truncation")
+(Get-Content $log -ErrorAction SilentlyContinue) | Select-String -Pattern 'BATCH_MARKER|not recognized' | Select-Object -First 4 | ForEach-Object { Write-Output ("    after> " + $_.Line.Trim()) }
 Write-Output ("  MARKER FILE WRITTEN BY THE REPLACED BATCH FILE : " + (Test-Path $MARK))
 if (Test-Path $MARK) { Write-Output ("    content> " + (Get-Content $MARK -Raw).Trim()) }
 
@@ -95,7 +98,9 @@ Add-Content -Path $bat -Value 'echo ORIGINAL-MAINTENANCE-SCRIPT' -Encoding ASCII
 RunLeg 'CONTROL percent signs removed' 'FabBUILD_SOURCEVERSIONMESSAGE.dacpac' $msg
 Write-Output ("  batch file bytes : " + (Get-Item $bat).Length)
 Write-Output ("  ORIGINAL LINE STILL PRESENT : " + ((Get-Content $bat -Raw) -match 'ORIGINAL-MAINTENANCE-SCRIPT'))
-& cmd.exe /c "`"$bat`"" 2>&1 | Select-Object -First 4 | ForEach-Object { Write-Output ("    after> " + $_) }
+$log2 = Join-Path $work 'batout2.txt'
+cmd.exe /c "`"$bat`" > `"$log2`" 2>&1"
+(Get-Content $log2 -ErrorAction SilentlyContinue) | Select-Object -First 3 | ForEach-Object { Write-Output ("    after> " + $_) }
 Write-Output ("  MARKER FILE WRITTEN : " + (Test-Path $MARK))
 
 Write-Output ""
