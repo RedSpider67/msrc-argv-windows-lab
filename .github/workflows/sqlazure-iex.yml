@@ -1,0 +1,24 @@
+name: sqlazure-iex
+on:
+  workflow_dispatch:
+  push:
+    paths: ['harness/sqlazure-iex.ps1', '.github/workflows/sqlazure-iex.yml']
+jobs:
+  winps51:
+    name: Windows PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: powershell
+        run: $PSVersionTable | Format-List | Out-String
+      - shell: powershell
+        run: .\harness\sqlazure-iex.ps1
+  pwsh7:
+    name: PowerShell 7
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        run: $PSVersionTable | Format-List | Out-String
+      - shell: pwsh
+        run: .\harness\sqlazure-iex.ps1

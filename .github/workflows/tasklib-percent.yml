@@ -1,0 +1,30 @@
+name: tasklib-percent
+on:
+  workflow_dispatch:
+  push:
+    paths: ['harness/tasklib-percent.js', '.github/workflows/tasklib-percent.yml']
+jobs:
+  percent:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: build work dir
+        shell: pwsh
+        run: |
+          $work = Join-Path $env:RUNNER_TEMP 'work'
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          & $csc /nologo /out:"$work\argvdump.exe" harness\argvdump.cs
+          & $csc /nologo /out:"$work\mark.exe" harness\mark.cs
+          Get-ChildItem $work | Select-Object Name,Length | Format-Table | Out-String
+          "WORK=$work" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: install the published library
+        shell: pwsh
+        run: npm init -y --silent; npm i --silent azure-pipelines-task-lib@5.280.3
+      - name: run
+        shell: pwsh
+        env:
+          MSRC_MARKER_ID: gh-tasklib-percent
+        run: node harness\tasklib-percent.js "$env:WORK"

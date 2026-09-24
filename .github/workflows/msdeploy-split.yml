@@ -1,0 +1,36 @@
+name: msdeploy-split
+on:
+  workflow_dispatch:
+  push:
+    paths: ['harness/msdeploy-split.js', '.github/workflows/msdeploy-split.yml']
+jobs:
+  split:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: build work dir and put the stub msdeploy on PATH
+        shell: pwsh
+        run: |
+          $work = Join-Path $env:RUNNER_TEMP 'work'
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          & $csc /nologo /out:"$work\msdeploy.exe" harness\argvdump.cs
+          & $csc /nologo /out:"$work\mark.exe" harness\mark.cs
+          Get-ChildItem $work | Select-Object Name,Length | Format-Table | Out-String
+          "WORK=$work" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $work | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: show the checked-out payload file name survived git and NTFS
+        shell: pwsh
+        run: Get-ChildItem repo-payloads | Select-Object Name,Length | Format-Table | Out-String
+      - name: install the published packages
+        shell: pwsh
+        run: npm init -y --silent; npm i --silent azure-pipelines-tasks-webdeployment-common@4.281.0 azure-pipelines-task-lib@5.280.3
+      - name: run
+        shell: pwsh
+        env:
+          MSRC_MARKER_ID: gh-msdeploy-split
+        run: |
+          $zip = Join-Path $PWD 'repo-payloads\app&mark&.zip'
+          node harness\msdeploy-split.js "$env:WORK" "$zip"

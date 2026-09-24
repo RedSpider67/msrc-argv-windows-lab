@@ -1,0 +1,28 @@
+name: stopparsing
+on:
+  workflow_dispatch:
+  push:
+    paths: ['harness/stopparsing.ps1', '.github/workflows/stopparsing.yml']
+jobs:
+  winps51:
+    name: Windows PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: version banner
+        shell: powershell
+        run: $PSVersionTable | Format-List | Out-String
+      - name: run
+        shell: powershell
+        run: .\harness\stopparsing.ps1
+  pwsh7:
+    name: PowerShell 7
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: version banner
+        shell: pwsh
+        run: $PSVersionTable | Format-List | Out-String
+      - name: run
+        shell: pwsh
+        run: .\harness\stopparsing.ps1
