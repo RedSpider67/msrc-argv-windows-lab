@@ -1,0 +1,24 @@
+name: sqlpackage-probe
+on: { workflow_dispatch: {} }
+jobs:
+  probe:
+    runs-on: windows-latest
+    steps:
+      - shell: pwsh
+        continue-on-error: true
+        run: |
+          Write-Output "--- where.exe sqlpackage"
+          cmd /c "where sqlpackage 2>nul"
+          Write-Output "--- common locations"
+          foreach ($p in @("C:\Program Files\Microsoft SQL Server\*\DAC\bin\SqlPackage.exe",
+                           "C:\Program Files (x86)\Microsoft SQL Server\*\DAC\bin\SqlPackage.exe",
+                           "C:\Program Files\Microsoft Visual Studio\*\*\Common7\IDE\Extensions\Microsoft\SQLDB\DAC\*\SqlPackage.exe",
+                           "$env:AGENT_TOOLSDIRECTORY\*\sqlpackage*",
+                           "C:\hostedtoolcache\windows\*sqlpackage*")) {
+            Get-ChildItem -Path $p -ErrorAction SilentlyContinue | ForEach-Object { Write-Output ("  FOUND " + $_.FullName) }
+          }
+          Write-Output "--- dotnet tool"
+          dotnet tool install -g microsoft.sqlpackage 2>&1 | Out-String
+          $sp = "$env:USERPROFILE\.dotnet\tools\sqlpackage.exe"
+          Write-Output ("dotnet-tool sqlpackage exists : " + (Test-Path $sp))
+          if (Test-Path $sp) { & $sp /version 2>&1 | Out-String }
