@@ -1,0 +1,32 @@
+webdeployment-common 4.281.0 | task-lib 5.280.3 | node v26.5.0
+argStringToArray lifted verbatim from the shipped file, 1089 bytes
+
+=== INJECTED FILE NAME ===
+committed file name          : "app&calc&.zip"
+msdeployutility builds       : -source:package="'C:\agent\_work\1\s\app&calc&.zip'"
+after argStringToArray       : "-source:package='C:\\agent\\_work\\1\\s\\app&calc&.zip'"
+
+AS SHIPPED (windowsVerbatimArguments: true, shell: true)
+  cmd.exe receives           : cmd.exe /d /s /c "".\msdeploy.exe" -verb:sync -source:package='C:\agent\_work\1\s\app&calc&.zip' -dest:contentPath='MySite' -enableRule:DoNotDeleteRule"
+  -source token              : "-source:package='C:\\agent\\_work\\1\\s\\app&calc&.zip'"
+  token inside cmd quotes    : false
+
+CONTROL, identical bytes, windowsVerbatimArguments omitted
+  cmd.exe receives           : cmd.exe /d /s /c "".\msdeploy.exe" -verb:sync "-source:package='C:\agent\_work\1\s\app&calc&.zip'" "-dest:contentPath='MySite'" -enableRule:DoNotDeleteRule"
+  -source token              : "\"-source:package='C:\\agent\\_work\\1\\s\\app&calc&.zip'\""
+  token inside cmd quotes    : true
+
+=== CONTROL FILE NAME ===
+committed file name          : "app.zip"
+msdeployutility builds       : -source:package="'C:\agent\_work\1\s\app.zip'"
+after argStringToArray       : "-source:package='C:\\agent\\_work\\1\\s\\app.zip'"
+
+AS SHIPPED (windowsVerbatimArguments: true, shell: true)
+  cmd.exe receives           : cmd.exe /d /s /c "".\msdeploy.exe" -verb:sync -source:package='C:\agent\_work\1\s\app.zip' -dest:contentPath='MySite' -enableRule:DoNotDeleteRule"
+  -source token              : "-source:package='C:\\agent\\_work\\1\\s\\app.zip'"
+  token inside cmd quotes    : false
+
+CONTROL, identical bytes, windowsVerbatimArguments omitted
+  cmd.exe receives           : cmd.exe /d /s /c "".\msdeploy.exe" -verb:sync "-source:package='C:\agent\_work\1\s\app.zip'" "-dest:contentPath='MySite'" -enableRule:DoNotDeleteRule"
+  -source token              : "\"-source:package='C:\\agent\\_work\\1\\s\\app.zip'\""
+  token inside cmd quotes    : true

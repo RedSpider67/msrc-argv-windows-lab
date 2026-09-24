@@ -1,0 +1,29 @@
+name: pocverify
+on: { workflow_dispatch: {} }
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: sqldacpac run.ps1
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\sqldacpac; .\run.ps1
+      - name: sqldacpac argv.ps1
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\sqldacpac; .\argv.ps1
+      - name: sqlazure run.ps1 (WinPS 5.1)
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\sqlazure; .\run.ps1
+      - name: androidsigning detonate.ps1
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\androidsigning; .\detonate.ps1
+      - name: msdeploy detonate.ps1
+        shell: powershell
+        continue-on-error: true
+        run: cd pocverify\msdeploy; .\detonate.ps1

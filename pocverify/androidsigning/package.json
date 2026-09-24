@@ -1,0 +1,6 @@
+{
+  "name": "msrc-androidsigning-percent-poc",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": { "azure-pipelines-task-lib": "5.280.3" }
+}
