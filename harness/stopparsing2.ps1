@@ -16,16 +16,20 @@ Write-Output ("PSVersion : " + $PSVersionTable.PSVersion + "   PSEdition : " + $
 Write-Output ("OS        : " + [System.Environment]::OSVersion.VersionString)
 Write-Output "=================================================================="
 
-function Lift([string]$file, [string[]]$names) {
+# Returns the verbatim source text of the named functions. The caller dot-sources the
+# result at script scope, so the definitions are the shipped ones, byte for byte.
+function Get-LiftedText([string]$file, [string[]]$names) {
     $tok = $null; $err = $null
     $ast = [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tok, [ref]$err)
     $fns = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
+    $parts = @()
     foreach ($name in $names) {
         $f = $fns | Where-Object { $_.Name -eq $name } | Select-Object -First 1
         if (-not $f) { throw "function $name not found in $file" }
-        Write-Output ("  lifted verbatim : $name lines $($f.Extent.StartLineNumber)-$($f.Extent.EndLineNumber), $($f.Extent.Text.Length) bytes")
-        . ([scriptblock]::Create($f.Extent.Text))
+        Write-Host ("  lifted verbatim : $name lines $($f.Extent.StartLineNumber)-$($f.Extent.EndLineNumber), $($f.Extent.Text.Length) bytes")
+        $parts += $f.Extent.Text
     }
+    return ($parts -join "`r`n")
 }
 
 # ---------------------------------------------------------------- Part A source
@@ -37,7 +41,7 @@ Copy-Item $nupkg (Join-Path $work 'pkg.zip')
 Expand-Archive -Path (Join-Path $work 'pkg.zip') -DestinationPath (Join-Path $work 'pkg') -Force
 $modFile = (Get-ChildItem -Recurse -Path (Join-Path $work 'pkg') -Filter 'SqlPackageOnTargetMachines.ps1' | Select-Object -First 1).FullName
 Write-Output ("  module sha256   : " + (Get-FileHash -Algorithm SHA256 $modFile).Hash.ToLower())
-Lift $modFile @('Get-SqlPackageCmdArgs','ExecuteCommand')
+. ([scriptblock]::Create((Get-LiftedText $modFile @('Get-SqlPackageCmdArgs','ExecuteCommand'))))
 
 # ---------------------------------------------------------------- Part B source
 Write-Output ""
@@ -48,7 +52,7 @@ $utilFile = Join-Path $work 'Utility.ps1'
 Invoke-WebRequest -UseBasicParsing -Uri $utilUrl -OutFile $utilFile
 Write-Output ("  Utility.ps1 sha256 : " + (Get-FileHash -Algorithm SHA256 $utilFile).Hash.ToLower())
 function Get-VstsLocString { param([string]$Key, $ArgumentList) return "locstring:$Key" }
-Lift $utilFile @('Get-SqlPackageCommandArguments','Execute-Command')
+. ([scriptblock]::Create((Get-LiftedText $utilFile @('Get-SqlPackageCommandArguments','Execute-Command'))))
 
 # ------------------------------------------------------- the native receiver
 $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
@@ -101,7 +105,7 @@ Write-Output "################ PART B  SqlAzureDacpacDeploymentV1, Utility.ps1 l
 foreach ($k in $names.Keys) {
     $d = $names[$k]
     $a = Get-SqlPackageCommandArguments -sqlpackageAction 'Publish' -sourceFile $d -targetServerName 'sqlprod01.database.windows.net' -targetDatabaseName 'Fabrikam' -authenticationType 'server' -targetUser 'appuser' -targetPassword 'S3cret' -additionalArguments ''
-    Report $k $d $a { Execute-Command -FileName "$argvdump" -Arguments $a 2>&1 }
+    Report $k $d $a { Execute-Command -FileName "$argvdump" -Arguments $a 6>&1 2>&1 }
 }
 
 Write-Output ""
