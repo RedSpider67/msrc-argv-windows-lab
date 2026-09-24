@@ -70,19 +70,18 @@ namespace MsrcLab
 }
 "@
 Set-Content -Path (Join-Path $proj 'Marker.cs') -Value $cs -Encoding UTF8
+$refs = (Get-ChildItem $dacBin -Filter '*.dll' | ForEach-Object { '    <Reference Include="' + $_.BaseName + '"><HintPath>' + $_.FullName + '</HintPath><Private>false</Private></Reference>' }) -join "`r`n"
+Write-Output ("  referencing " + (Get-ChildItem $dacBin -Filter '*.dll').Count + " assemblies from the DAC bin directory")
 $csproj = @"
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>MsrcLab.Contrib</AssemblyName>
     <Nullable>disable</Nullable>
-    <NoWarn>CA1416</NoWarn>
-    <EnableDefaultItems>true</EnableDefaultItems>
+    <NoWarn>CA1416;CS1701;CS1702;MSB3277</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.SqlServer.Dac"><HintPath>$dacBin\Microsoft.SqlServer.Dac.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Microsoft.SqlServer.Dac.Extensions"><HintPath>$dacBin\Microsoft.SqlServer.Dac.Extensions.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Microsoft.SqlServer.TransactSql.ScriptDom"><HintPath>$dacBin\Microsoft.SqlServer.TransactSql.ScriptDom.dll</HintPath><Private>false</Private></Reference>
+$refs
   </ItemGroup>
 </Project>
 "@
