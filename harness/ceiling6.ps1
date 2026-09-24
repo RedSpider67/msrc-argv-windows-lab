@@ -81,6 +81,9 @@ $csproj = @"
     <NoWarn>CA1416;CS1701;CS1702;MSB3277</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" ExcludeAssets="runtime" />
+  </ItemGroup>
+  <ItemGroup>
 $refs
   </ItemGroup>
 </Project>
