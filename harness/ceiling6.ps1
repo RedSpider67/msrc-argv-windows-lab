@@ -75,13 +75,13 @@ Write-Output ("  referencing " + (Get-ChildItem $dacBin -Filter '*.dll').Count +
 $csproj = @"
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AssemblyName>MsrcLab.Contrib</AssemblyName>
     <Nullable>disable</Nullable>
     <NoWarn>CA1416;CS1701;CS1702;MSB3277</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" ExcludeAssets="runtime" />
+    <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
 $refs
@@ -127,7 +127,7 @@ function Show-Diag([string]$f) {
     if (Test-Path $f) {
         $d = Get-Content $f
         Write-Output ("  diagnostics, " + $d.Count + " lines, extension-load relevant:")
-        $d | Where-Object { $_ -match 'xtension|ontributor|Load|Exception|Error|Composition|Assembly' } | Select-Object -First 25 | ForEach-Object { Write-Output ("    diag> " + $_.Trim()) }
+        $d | Where-Object { $_ -match 'xtension|ontributor|Exception|Error|Composition|Assembly|could not be loaded|Marker' -and $_ -notmatch 'Loading collation|IgnoreCryptographicProviderFilePath' } | Select-Object -First 20 | ForEach-Object { Write-Output ("    diag> " + $_.Substring(0, [Math]::Min(400, $_.Length)).Trim()) }
     } else { Write-Output "  no diagnostics file" }
 }
 
