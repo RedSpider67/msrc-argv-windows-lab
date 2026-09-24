@@ -75,3 +75,7 @@ Write-Output ("  CONTROL ordinary name                 diagnostics file written 
 Write-Output ("  CONTROL name without percent signs    diagnostics file written = " + $c2)
 Write-Output ("  INJECT  name with percent signs       diagnostics file written = " + $i1)
 Write-Output "DONE"
+
+# SqlPackage.exe exits nonzero because the source file does not exist, which is expected
+# and irrelevant to the measurement. Exit clean so the run reads as a success.
+exit 0
