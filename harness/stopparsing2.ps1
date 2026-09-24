@@ -23,6 +23,10 @@ function Get-LiftedText([string]$file, [string[]]$names) {
     $ast = [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tok, [ref]$err)
     $fns = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
     $parts = @()
+    if ($names.Count -eq 1 -and $names[0] -eq '*') {
+        $names = @($fns | ForEach-Object { $_.Name })
+        Write-Host ("  lifting ALL " + $names.Count + " function definitions from " + (Split-Path -Leaf $file))
+    }
     foreach ($name in $names) {
         $f = $fns | Where-Object { $_.Name -eq $name } | Select-Object -First 1
         if (-not $f) { throw "function $name not found in $file" }
@@ -52,7 +56,7 @@ $utilFile = Join-Path $work 'Utility.ps1'
 Invoke-WebRequest -UseBasicParsing -Uri $utilUrl -OutFile $utilFile
 Write-Output ("  Utility.ps1 sha256 : " + (Get-FileHash -Algorithm SHA256 $utilFile).Hash.ToLower())
 function Get-VstsLocString { param([string]$Key, $ArgumentList) return "locstring:$Key" }
-. ([scriptblock]::Create((Get-LiftedText $utilFile @('Get-SqlPackageCommandArguments','Execute-Command'))))
+. ([scriptblock]::Create((Get-LiftedText $utilFile @('*'))))
 
 # ------------------------------------------------------- the native receiver
 $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
