@@ -1,0 +1,12 @@
+name: sqlpackage-real
+on:
+  workflow_dispatch:
+  push: { paths: ['harness/sqlpackage-real.ps1', '.github/workflows/sqlpackage-real.yml'] }
+jobs:
+  winps51:
+    name: Windows PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: powershell
+        run: .\harness\sqlpackage-real.ps1
