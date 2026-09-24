@@ -45,22 +45,22 @@ $MARKER = Join-Path $MARKERDIR 'PWNED-diagnostics'
 $env:BUILD_SOURCEVERSIONMESSAGE = 'fix db" /Diagnostics:True /DiagnosticsFile:"' + $MARKER
 
 function Leg([string]$label, [string]$fileName) {
-    Write-Output ""
-    Write-Output "================ $label"
-    Write-Output ("  committed file name : " + $fileName)
-    Write-Output ("  commit message      : " + $env:BUILD_SOURCEVERSIONMESSAGE)
+    Write-Host ""
+    Write-Host "================ $label"
+    Write-Host ("  committed file name : " + $fileName)
+    Write-Host ("  commit message      : " + $env:BUILD_SOURCEVERSIONMESSAGE)
     Get-ChildItem $MARKERDIR -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
     $dacpac = Join-Path $work ("db\" + $fileName)
     $a = Get-SqlPackageCmdArgs -dacpacFile $dacpac -targetMethod 'server' -serverName 'localhost\NOSUCHINSTANCE' -databaseName 'Fabrikam' -additionalArguments ''
-    Write-Output ("  argument string     : " + $a)
+    Write-Host ("  argument string     : " + $a)
     try { $out = ExecuteCommand -FileName $sqlPackage -Arguments $a } catch { $out = "$_" }
-    ($out -split "`r?`n") | Where-Object { $_.Trim() } | Select-Object -First 6 | ForEach-Object { Write-Output ("  out> " + $_.Trim()) }
+    ($out -split "`r?`n") | Where-Object { $_.Trim() } | Select-Object -First 6 | ForEach-Object { Write-Host ("  out> " + $_.Trim()) }
     $found = @(Get-ChildItem $MARKERDIR -ErrorAction SilentlyContinue)
-    Write-Output ("  DIAGNOSTICS FILE WRITTEN BY SqlPackage.exe : " + ($found.Count -gt 0))
+    Write-Host ("  DIAGNOSTICS FILE WRITTEN BY SqlPackage.exe : " + ($found.Count -gt 0))
     foreach ($f in $found) {
-        Write-Output ("    path  : " + $f.FullName)
-        Write-Output ("    bytes : " + $f.Length)
-        (Get-Content $f.FullName -TotalCount 4) | ForEach-Object { Write-Output ("    head> " + $_) }
+        Write-Host ("    path  : " + $f.FullName)
+        Write-Host ("    bytes : " + $f.Length)
+        (Get-Content $f.FullName -TotalCount 4) | ForEach-Object { Write-Host ("    head> " + $_) }
     }
     return ($found.Count -gt 0)
 }
