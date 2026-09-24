@@ -14,7 +14,7 @@ Set-Content -Path (Join-Path $lab 'repo/db/payload.ps1') -Value '$env:RZ_STAGED 
 
 $controlName = 'migrate.sql'
 $inlineName  = 'migrate$(ni rz-fired.txt).sql'
-$stagedName  = 'migrate$(iex(gc(gci -r -fi payload.ps1))).sql'
+$stagedName  = 'migrate$(iex(gc((gci -r -fi payload.ps1).FullName))).sql'
 foreach ($n in @($controlName, $inlineName, $stagedName)) {
     Set-Content -Path (Join-Path $lab "repo/db/$n") -Value 'SELECT 1;'
 }
